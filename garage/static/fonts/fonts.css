@@ -1,0 +1,14 @@
+@font-face {
+  font-family: 'Cairo';
+  src: url('../fonts/cairo/Cairo-Regular.woff2') format('woff2'),
+       url('../fonts/cairo/Cairo-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Space Grotesk';
+  src: url('../fonts/space-grotesk/SpaceGrotesk-Regular.ttf') format('ttf'),
+  font-weight: 400;
+  font-style: normal;
+}

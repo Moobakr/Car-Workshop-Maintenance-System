@@ -1,0 +1,70 @@
+{% extends "garage/base.html" %}
+{% block content %}
+<div class="container mt-4" dir="rtl">
+  <h3 class="mb-3">المصروفات</h3>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <form method="post" class="row g-2">
+        {% csrf_token %}
+        <div class="col-md-2">{{ form.date.label_tag }} {{ form.date }}</div>
+        <div class="col-md-3">{{ form.category.label_tag }} {{ form.category }}</div>
+        <div class="col-md-2">{{ form.amount.label_tag }} {{ form.amount }}</div>
+        <div class="col-md-4">{{ form.note.label_tag }} {{ form.note }}</div>
+        <div class="col-md-1 align-self-end">
+          <button class="btn btn-primary w-100">+</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped table-hover align-middle">
+      <thead>
+        <tr>
+          <th>التاريخ</th>
+          <th>الفئة</th>
+          <th>المبلغ</th>
+          <th>ملاحظة</th>
+          <th>إجراء</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for e in expenses %}
+          <tr>
+            <td>{{ e.date|date:"d/m/Y" }}</td>
+            <td>{{ e.category }}</td>
+            <td><b>{{ e.amount }}</b> ج.م</td>
+            <td>
+              {% if e.visit_url %}
+                {% if e.vin_label %}
+                  <span class="me-2"><b>VIN</b> {{ e.vin_label }}</span>
+                {% endif %}
+                <!-- changed to black instead of gray -->
+                <a class="btn btn-sm btn-dark" href="{{ e.visit_url }}">
+                  Visit {{ e.visit_label }}
+                </a>
+              {% else %}
+                {{ e.note }}
+              {% endif %}
+            </td>
+            <td>
+              <form method="post" action="{% url 'expense_delete' e.id %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger">
+                  حذف
+                </button>
+              </form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" class="text-center muted py-4">لا يوجد مصروفات</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

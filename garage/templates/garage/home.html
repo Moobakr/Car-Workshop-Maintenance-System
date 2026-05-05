@@ -1,0 +1,121 @@
+{% extends "garage/base.html" %}
+{% block content %}
+
+<div class="container py-4">
+
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h3 class="m-0">بحث</h3>
+  </div>
+
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-2">
+        <div class="col-12 col-md-9">
+          <input type="text" name="q" value="{{ q }}" class="form-control form-control-lg"
+                 placeholder="ابحث برقم الشاسيه / اللوحة / اسم العميل / الهاتف / رقم الفاتورة">
+        </div>
+        <div class="col-12 col-md-3 d-grid">
+          <!-- changed from dark to primary (red) -->
+          <button class="btn btn-primary btn-lg">بحث</button>
+        </div>
+      </form>
+
+      {% if q %}
+        <div class="muted mt-2">نتائج البحث عن: <b>{{ q }}</b></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <ul class="nav nav-pills mb-3 gap-2" id="searchTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="cars-tab" data-bs-toggle="pill" data-bs-target="#cars" type="button">
+        السيارات ({{ cars|length }})
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="visits-tab" data-bs-toggle="pill" data-bs-target="#visits" type="button">
+        الفواتير ({{ visits|length }})
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content">
+
+    <div class="tab-pane fade show active" id="cars">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          {% if cars %}
+            <div class="table-responsive">
+              <table class="table table-striped table-hover align-middle">
+                <thead>
+                  <tr>
+                    <th>VIN</th>
+                    <th>اللوحة</th>
+                    <th>العميل</th>
+                    <th>الهاتف</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for c in cars %}
+                    <tr>
+                      <td><b>{{ c.vin }}</b></td>
+                      <td>{{ c.plate_number|default:"-" }}</td>
+                      <td>{{ c.client.name }}</td>
+                      <td>{{ c.client.phone }}</td>
+                      <td class="text-end">
+                        <a class="btn btn-sm btn-outline-dark" href="{% url 'car_detail' c.vin %}">فتح</a>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="muted">لا توجد نتائج سيارات.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="visits">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          {% if visits %}
+            <div class="table-responsive">
+              <table class="table table-striped table-hover align-middle">
+                <thead>
+                  <tr>
+                    <th>رقم الفاتورة</th>
+                    <th>التاريخ</th>
+                    <th>VIN</th>
+                    <th>العميل</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for v in visits %}
+                    <tr>
+                      <td><b>{{ v.invoice_no }}</b></td>
+                      <td>{{ v.visit_date|date:"d/m/Y" }}</td>
+                      <td>{{ v.car.vin }}</td>
+                      <td>{{ v.car.client.name }}</td>
+                      <td class="text-end">
+                        <a class="btn btn-sm btn-outline-dark" href="{% url 'visit_detail' v.id %}">عرض</a>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="muted">لا توجد نتائج فواتير.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

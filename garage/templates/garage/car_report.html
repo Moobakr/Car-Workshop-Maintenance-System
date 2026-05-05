@@ -1,0 +1,61 @@
+{% extends "garage/base.html" %}
+{% block content %}
+<div class="container mt-4" dir="rtl">
+  <h3 class="mb-3">تقرير عربية</h3>
+
+  <div class="mb-2">
+    <b>VIN:</b> {{ car.vin }}
+    {% if car.plate_number %}
+      | <b>لوحة:</b> {{ car.plate_number }}
+    {% endif %}
+  </div>
+
+  <form method="get" class="row g-2 mb-3">
+    <div class="col-md-3">{{ form.start_date.label_tag }} {{ form.start_date }}</div>
+    <div class="col-md-3">{{ form.end_date.label_tag }} {{ form.end_date }}</div>
+
+    <div class="col-md-3 align-self-end d-flex gap-2">
+      <button class="btn btn-primary">عرض</button>
+      <!-- changed to black instead of gray -->
+      <a class="btn btn-dark" href="{% url 'car_report' car.vin %}">مسح</a>
+    </div>
+  </form>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5>إجمالي دخل العربية</h5>
+      <div style="font-size:22px"><b>{{ total }}</b> ج.م</div>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped table-hover align-middle">
+      <thead>
+        <tr>
+          <th>التاريخ</th>
+          <th>الفني</th>
+          <th>رقم الفاتورة</th>
+          <th>الإجمالي</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for v in visits %}
+          <tr>
+            <td>{{ v.visit_date|date:"d/m/Y" }}</td>
+            <td>{{ v.worker.name }}</td>
+            <td>{{ v.invoice_no }}</td>
+            <td>{{ v.cost }} ج.م</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="4" class="text-center muted py-4">
+              لا يوجد زيارات في الفترة المحددة
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

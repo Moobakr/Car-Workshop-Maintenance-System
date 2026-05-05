@@ -1,0 +1,69 @@
+{% extends "garage/base.html" %}
+{% block content %}
+
+<h2 class="mb-3">تفاصيل السيارة</h2>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <div><b>رقم الهيكل (VIN):</b> {{ car.vin }}</div>
+    <div><b>رقم اللوحة:</b> {{ car.plate_number }}</div>
+    <div><b>معلومة مهمة:</b> {{ car.important_detail|default:"-" }}</div>
+    <div><b>العداد الحالي (KM):</b> {{ car.current_km }}</div>
+
+    <hr class="my-3"/>
+
+    <div><b>العميل:</b> {{ car.client.name }} - {{ car.client.phone }}</div>
+
+    <div class="action-links mt-3 d-flex flex-wrap gap-2">
+      <a href="{% url 'car_edit' car.vin %}">تعديل بيانات السيارة</a>
+      <a href="{% url 'visit_create' car.vin %}">إضافة زيارة/تصليح</a>
+      <a class="btn btn-primary" href="{% url 'car_report' car.vin %}">تقرير العربية</a>
+    </div>
+  </div>
+</div>
+
+<h3 class="mt-4 mb-3">سجل الزيارات</h3>
+
+{% if visits %}
+  {% for v in visits %}
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div><b>التاريخ:</b> {{ v.visit_date }}</div>
+        <div><b>KM:</b> {{ v.km_at_visit }}</div>
+        <div><b>الفني:</b> {{ v.worker.name }}</div>
+
+        <hr class="my-3"/>
+
+        <div><b>وصف العمل:</b><br/>{{ v.work_description|linebreaksbr }}</div>
+
+        {% if v.parts_used %}
+          <div><b>قطع الغيار المستخدمة:</b><br/>{{ v.parts_used|linebreaksbr }}</div>
+        {% endif %}
+
+        {% if v.cost != None %}
+          <div><b>التكلفة:</b> {{ v.cost }}</div>
+        {% endif %}
+
+        {% if v.notes %}
+          <div class="muted"><b>ملاحظات:</b> {{ v.notes|linebreaksbr }}</div>
+        {% endif %}
+
+        {% if v.invoice_no %}
+          <div><b>رقم الفاتورة:</b> {{ v.invoice_no }}</div>
+        {% endif %}
+
+        <div class="action-links mt-3 d-flex flex-wrap gap-2">
+          <a href="{% url 'visit_invoice_pdf' v.id %}">تصدير PDF</a>
+          <a href="{% url 'visit_whatsapp' v.id %}" target="_blank">إرسال واتساب</a>
+
+          <!-- changed from outline-secondary to outline-dark -->
+          <a class="btn btn-outline-dark" href="{% url 'visit_edit' v.id %}">تعديل</a>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+{% else %}
+  <p class="muted">لا توجد زيارات مسجلة حتى الآن.</p>
+{% endif %}
+
+{% endblock %}

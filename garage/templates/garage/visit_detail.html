@@ -1,0 +1,180 @@
+{% extends "garage/base.html" %}
+{% block content %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div>
+    <h3 class="mb-1">تفاصيل الزيارة</h3>
+    <div class="muted">فاتورة: <b>{{ visit.invoice_no }}</b></div>
+  </div>
+
+  <div class="d-flex gap-2 flex-wrap">
+    <a class="btn btn-outline-dark" href="{% url 'visit_invoice_pdf' visit.id %}">PDF</a>
+    <a class="btn btn-outline-dark" href="{% url 'visit_whatsapp' visit.id %}">واتساب</a>
+    <!-- changed from outline-secondary to outline-dark -->
+    <a class="btn btn-outline-dark" href="{% url 'visit_edit' visit.id %}">تعديل</a>
+    <a class="btn btn-dark" href="{% url 'car_detail' car.vin %}">فتح العربية</a>
+  </div>
+</div>
+
+<div class="row g-3">
+
+  <div class="col-12 col-lg-6">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <h6 class="mb-3">بيانات العميل</h6>
+        <div class="d-flex justify-content-between"><span class="muted">الاسم</span><b>{{ client.name }}</b></div>
+        <div class="d-flex justify-content-between"><span class="muted">الهاتف</span><b>{{ client.phone }}</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <h6 class="mb-3">بيانات العربية والزيارة</h6>
+        <div class="d-flex justify-content-between"><span class="muted">VIN</span><b>{{ car.vin }}</b></div>
+
+        {% if car.plate_number %}
+          <div class="d-flex justify-content-between"><span class="muted">اللوحة</span><b>{{ car.plate_number }}</b></div>
+        {% endif %}
+
+        {% if car.important_detail %}
+          <div class="d-flex justify-content-between"><span class="muted">معلومة مهمة</span><b>{{ car.important_detail }}</b></div>
+        {% endif %}
+
+        <div class="d-flex justify-content-between"><span class="muted">KM عند الزيارة</span><b>{{ visit.km_at_visit }}</b></div>
+        <div class="d-flex justify-content-between"><span class="muted">تاريخ الزيارة</span><b>{{ visit.visit_date|date:"d/m/Y - h:i a" }}</b></div>
+        <div class="d-flex justify-content-between"><span class="muted">الفني</span><b>{% if visit.worker %}{{ visit.worker.name }}{% else %}-{% endif %}</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="card shadow-sm border-0">
+      <div class="card-body">
+        <h6 class="mb-3">تفاصيل الصيانة</h6>
+
+        {% if visit.work_description %}
+          <div class="mb-3">
+            <div class="muted mb-1">وصف العمل</div>
+            <div class="p-3 bg-light rounded border">{{ visit.work_description|linebreaksbr }}</div>
+          </div>
+        {% endif %}
+
+        {% if visit.notes %}
+          <div class="mb-3">
+            <div class="muted mb-1">ملاحظات</div>
+            <div class="p-3 bg-light rounded border">{{ visit.notes|linebreaksbr }}</div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="card shadow-sm border-0">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <h6 class="m-0">قطع الغيار</h6>
+          <div class="muted">عدد القطع: <b>{{ parts|length }}</b></div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-striped table-hover align-middle">
+            <thead>
+              <tr>
+                <th>القطعة</th>
+                <th class="text-nowrap">سعر العميل</th>
+                <th class="text-nowrap">تكلفة الورشة</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if parts %}
+                {% for p in parts %}
+                  <tr>
+                    <td><b>{{ p.part_name }}</b></td>
+                    <td class="text-nowrap">{{ p.client_cost|default:"0" }} ج.م</td>
+                    <td class="text-nowrap">{{ p.workshop_cost|default:"0" }} ج.م</td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="3" class="muted">لا توجد قطع غيار.</td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="row g-2">
+          <div class="col-12 col-md-3">
+            <div class="p-3 bg-light rounded border">
+              <div class="muted">إجمالي قطع الغيار (عميل)</div>
+              <div class="fs-6"><b>{{ parts_client_total }}</b> ج.م</div>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-3">
+            <div class="p-3 bg-light rounded border">
+              <div class="muted">إجمالي قطع الغيار (ورشة)</div>
+              <div class="fs-6"><b>{{ parts_workshop_total }}</b> ج.م</div>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-3">
+            <div class="p-3 bg-light rounded border">
+              <div class="muted">المصنعية</div>
+              <div class="fs-6"><b>{{ labor_cost }}</b> ج.م</div>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-3">
+            <!-- changed highlight to red -->
+            <div class="p-3 bg-primary text-white rounded border">
+              <div class="opacity-75">الإجمالي النهائي</div>
+              <div class="fs-6"><b>{{ grand_total }}</b> ج.م</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="card shadow-sm border-0">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <h6 class="m-0">المدفوعات</h6>
+        </div>
+
+        <div class="row g-2">
+          <div class="col-12 col-md-4">
+            <div class="p-3 bg-light rounded border">
+              <div class="muted">إجمالي كاش</div>
+              <div class="fs-6"><b>{{ cash }}</b> ج.م</div>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <div class="p-3 bg-light rounded border">
+              <div class="muted">إجمالي انستا باي</div>
+              <div class="fs-6"><b>{{ insta }}</b> ج.م</div>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <div class="p-3 bg-light rounded border">
+              <div class="muted">إجمالي المدفوع</div>
+              <div class="fs-6"><b>{{ grand_total }}</b> ج.م</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

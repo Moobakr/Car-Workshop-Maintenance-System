@@ -1,0 +1,52 @@
+# Virtual env
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# VS Code
+.vscode/
+
+# Environment variables
+.env
+
+# Django
+db.sqlite3
+*.log
+
+
+env/
+.DS_Store
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Django
+db.sqlite3
+*.sqlite3
+/staticfiles/
+/media/
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Build / executable output
+dist/
+build/
+*.spec
+
+# Environment variables
+.env
+
+# Editor / system
+.vscode/
+.idea/
+.DS_Store

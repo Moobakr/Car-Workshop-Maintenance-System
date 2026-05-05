@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <style>
+    :root{
+      --brand: #d10000;   /* red */
+      --brand-2: #b00000;
+      --ink: #0b0b0b;     /* black */
+      --muted: #666;
+      --border: #e6e6e6;
+      --bg: #ffffff;      /* white */
+      --soft: #f7f7f7;
+      --soft-red: rgba(209,0,0,0.06);
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      direction: rtl;
+      color: var(--ink);
+      background: var(--bg);
+      margin: 0;
+      padding: 18px;
+    }
+
+    .box {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+      background: #fff;
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: var(--ink);
+      border-right: 4px solid var(--brand);
+      padding-right: 10px;
+    }
+
+    .muted { color: var(--muted); }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid var(--border); padding: 8px; text-align: right; }
+    th {
+      background: var(--soft);
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    /* Totals table highlight */
+    .totals table tr:last-child td{
+      background: var(--soft-red);
+      border-color: rgba(209,0,0,0.25);
+      font-weight: 700;
+    }
+
+    .row { display: table; width: 100%; }
+    .col { display: table-cell; vertical-align: top; }
+    .col-left { width: 70%; }
+    .col-right { width: 30%; text-align: left; }
+
+    .logo-box {
+      border: 1px dashed rgba(209,0,0,0.5);
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+      color: var(--brand);
+      font-size: 12px;
+      height: 70px;
+      line-height: 50px;
+      background: rgba(209,0,0,0.04);
+      font-weight: 700;
+    }
+
+    .money { white-space: nowrap; }
+
+    /* Optional small separators */
+    hr{
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="box">
+    <div class="row">
+      <div class="col col-left">
+        <div class="title">{{ workshop.workshop_name|default:"" }}</div>
+        {% if workshop.workshop_phone %}<div class="muted">هاتف: {{ workshop.workshop_phone }}</div>{% endif %}
+        {% if workshop.workshop_address %}<div class="muted">العنوان: {{ workshop.workshop_address }}</div>{% endif %}
+      </div>
+      <div class="col col-right">
+        <div class="logo-box"><img src="{% static 'images/logo.jpeg' %}" style="width:38px;height:38px;border-radius:10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="box">
+    <div class="title">فاتورة صيانة</div>
+    <div><b>رقم الفاتورة:</b> {{ visit.invoice_no }}</div>
+    <div><b>تاريخ الزيارة:</b> {{ visit.visit_date|date:"d/m/Y" }}</div>
+    <div><b>قراءة العداد:</b> {{ visit.km_at_visit }}</div>
+  </div>
+
+  <div class="box">
+    <div class="title">بيانات العميل</div>
+    <div><b>الاسم:</b> {{ client.name }}</div>
+    <div><b>رقم الهاتف:</b> {{ client.phone }}</div>
+  </div>
+
+  <div class="box">
+    <div class="title">بيانات العربية</div>
+    <div><b>رقم الشاسيه (VIN):</b> {{ car.vin }}</div>
+    {% if car.plate_number %}<div><b>رقم اللوحة:</b> {{ car.plate_number }}</div>{% endif %}
+    {% if car.important_detail %}<div><b>معلومة مهمة:</b> {{ car.important_detail }}</div>{% endif %}
+  </div>
+
+  <div class="box">
+    <div class="title">تفاصيل الصيانة</div>
+    <div><b>الفني:</b> {{ visit.worker.name }}</div>
+    <div><b>وصف العمل:</b><br/>{{ visit.work_description|linebreaksbr }}</div>
+
+    {% if visit.notes %}
+      <div style="margin-top:8px;"><b>ملاحظات:</b><br/>{{ visit.notes|linebreaksbr }}</div>
+    {% endif %}
+
+    <div style="margin-top:10px;">
+      <b>قطع الغيار :</b>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:70%;">القطعة</th>
+            <th style="width:30%;">السعر</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if parts and parts|length > 0 %}
+            {% for p in parts %}
+              <tr>
+                <!-- FIXED: part name under "القطعة" -->
+                <td>{{ p.part_name }}</td>
+                <!-- FIXED: cost under "السعر" -->
+                <td class="money">{{ p.client_cost|default:"0" }} ج.م</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="2" class="muted">لا توجد قطع غيار مسجلة.</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="totals">
+      <table>
+        <tbody>
+          <tr>
+            <td><b>إجمالي قطع الغيار:</b></td>
+            <td class="money">{{ parts_client_total|default:"0" }} ج.م</td>
+          </tr>
+          <tr>
+            <td><b>المصنعية:</b></td>
+            <td class="money">{{ visit.labor_cost|default:"0" }} ج.م</td>
+          </tr>
+          <tr>
+            <td><b>الإجمالي النهائي:</b></td>
+            <td class="money">{{ grand_total|default:visit.cost|default:"0" }} ج.م</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="muted" style="text-align:center; margin-top: 14px;">
+    شكراً لتعاملكم معنا
+  </div>
+
+</body>
+</html>

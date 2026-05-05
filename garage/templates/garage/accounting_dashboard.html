@@ -1,0 +1,70 @@
+{% extends "garage/base.html" %}
+{% block content %}
+<div class="container mt-4" dir="rtl">
+  <h3 class="mb-3">الحسابات</h3>
+
+  <form method="get" class="row g-2 mb-3">
+    <div class="col-md-3">{{ form.start_date.label_tag }} {{ form.start_date }}</div>
+    <div class="col-md-3">{{ form.end_date.label_tag }} {{ form.end_date }}</div>
+
+    <div class="col-md-3 align-self-end d-flex gap-2">
+      <button class="btn btn-primary">عرض</button>
+      <!-- make reset button black instead of gray -->
+      <a class="btn btn-dark" href="{% url 'accounting_dashboard' %}">مسح</a>
+    </div>
+  </form>
+
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-4">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5>عدد الزيارات</h5>
+          <div style="font-size:22px">{{ visits_count }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-4 g-3">
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <h5>كاش</h5>
+          <div style="font-size:22px"><b>{{ cash_total }}</b> ج.م</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <h5>بنك (InstaPay)</h5>
+          <div style="font-size:22px"><b>{{ bank_total }}</b> ج.م</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <h5>إجمالي المصروفات</h5>
+          <div style="font-size:22px"><b>{{ expenses_total }}</b> ج.م</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <h5>صافي الربح</h5>
+          <div style="font-size:22px"><b>{{ net }}</b> ج.م</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <a class="btn btn-outline-primary" href="{% url 'expenses_list' %}">إدارة المصروفات</a>
+  </div>
+</div>
+{% endblock %}

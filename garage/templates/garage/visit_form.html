@@ -1,0 +1,238 @@
+{% extends "garage/base.html" %}
+{% block content %}
+
+<style>
+  /* Keep this file's custom layout, but align colors with red/white/black.
+     Avoid overriding Bootstrap's .btn/.btn-danger globally. */
+
+  .muted { color: #666; }
+
+  .form-modern input,
+  .form-modern select,
+  .form-modern textarea{
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+  }
+
+  .table-wrap { overflow-x: auto; margin-top: 10px; }
+
+  table.parts-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 760px;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  table.parts-table th,
+  table.parts-table td {
+    border: 1px solid rgba(0,0,0,0.08);
+    padding: 10px;
+    vertical-align: top;
+    text-align: right;
+  }
+  table.parts-table th {
+    background: rgba(0,0,0,0.04);
+    font-weight: 700;
+  }
+
+  .parts-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  .totals-box{
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px dashed rgba(209,0,0,0.35);
+    border-radius: 12px;
+    background: rgba(209,0,0,0.04);
+  }
+  .totals-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    align-items: end;
+  }
+  .totals-item label{
+    display:block;
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+  .totals-value{
+    padding: 10px;
+    border: 1px solid rgba(0,0,0,0.10);
+    border-radius: 10px;
+    background: #fff;
+    font-weight: 800;
+  }
+
+  .row-hidden { display: none; }
+</style>
+
+<h2 class="mb-3">إضافة زيارة للسيارة: {{ car.vin }}</h2>
+
+{{ form.errors }}
+{{ formset.errors }}
+{{ payment_formset.errors }}
+{{ payment_formset.non_form_errors }}
+
+<div class="card p-4">
+  {% if warning %}
+    <div class="alert alert-warning warn">{{ warning }}</div>
+  {% endif %}
+
+  <form method="post" class="form-modern">
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <hr/>
+    <h3 class="mb-2">قطع الغيار</h3>
+
+    {{ formset.management_form }}
+
+    <div class="table-wrap">
+      <table class="parts-table" id="parts-table">
+        <thead>
+          <tr>
+            <th>اسم القطعة</th>
+            <th>تكلفة العميل</th>
+            <th>تكلفة الورشة</th>
+            <th>إجراء</th>
+          </tr>
+        </thead>
+        <tbody id="parts-tbody">
+          {% for pf in formset %}
+          <tr class="part-row">
+            <td>{{ pf.part_name }}</td>
+            <td>{{ pf.client_cost }}</td>
+            <td>{{ pf.workshop_cost }}</td>
+            <td class="text-nowrap">
+              {% if pf.id %}{{ pf.id }}{% endif %}
+              {% if pf.DELETE %}<div style="display:none;">{{ pf.DELETE }}</div>{% endif %}
+
+              <!-- red/black theme: danger outline -->
+              <button type="button" class="btn btn-sm btn-outline-danger" onclick="removePartRow(this)">حذف</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="parts-actions">
+      <!-- red outline for add -->
+      <button type="button" class="btn btn-outline-primary" onclick="addPartRow()">+ إضافة قطعة</button>
+    </div>
+
+    <div class="totals-box">
+      <div class="totals-grid">
+        <div class="totals-item">
+          <label>إجمالي قطع الغيار على العميل</label>
+          <div class="totals-value"><span id="parts-client-total">0.00</span></div>
+        </div>
+
+        <div class="totals-item">
+          <label>إجمالي قطع الغيار على الورشة</label>
+          <div class="totals-value"><span id="parts-workshop-total">0.00</span></div>
+        </div>
+
+        <div class="totals-item">
+          <label for="labor_cost">المصنعية</label>
+          <input type="number" step="0.01" min="0" name="labor_cost" id="labor_cost" class="form-control"
+                 value="{{ form.instance.labor_cost|default_if_none:0 }}">
+        </div>
+
+        <div class="totals-item">
+          <label>الإجمالي على العميل</label>
+          <div class="totals-value"><span id="grand-client-total">0.00</span></div>
+        </div>
+      </div>
+    </div>
+
+    <template id="empty-form-template">
+      <tr class="part-row">
+        <td>{{ formset.empty_form.part_name }}</td>
+        <td>{{ formset.empty_form.client_cost }}</td>
+        <td>{{ formset.empty_form.workshop_cost }}</td>
+        <td class="text-nowrap">
+          {% if formset.empty_form.id %}{{ formset.empty_form.id }}{% endif %}
+          {% if formset.empty_form.DELETE %}<div style="display:none;">{{ formset.empty_form.DELETE }}</div>{% endif %}
+
+          <button type="button" class="btn btn-sm btn-outline-danger" onclick="removePartRow(this)">حذف</button>
+        </td>
+      </tr>
+    </template>
+
+    <hr/>
+    <h3 class="mb-2">طرق الدفع</h3>
+
+    <div class="totals-box">
+      <div class="totals-grid">
+        <div class="totals-item">
+          <label>كاش</label>
+          {{ payment_form.cash_amount }}
+        </div>
+        <div class="totals-item">
+          <label>انستا باي</label>
+          {{ payment_form.insta_amount }}
+        </div>
+      </div>
+    </div>
+
+    <hr/>
+
+    <!-- Make submit button Bootstrap primary (red) -->
+    <button type="submit" class="btn btn-primary">حفظ الزيارة</button>
+  </form>
+</div>
+
+<script>
+  function n(v){const x=parseFloat((v||"").toString().replace(",","."));return isNaN(x)?0:x}
+  function m(v){return (Math.round(v*100)/100).toFixed(2)}
+
+  function recalc(){
+    let c=0,w=0
+    document.querySelectorAll("#parts-tbody tr.part-row:not(.row-hidden)").forEach(r=>{
+      c+=n(r.querySelector('input[name$="-client_cost"]')?.value)
+      w+=n(r.querySelector('input[name$="-workshop_cost"]')?.value)
+    })
+    document.getElementById("parts-client-total").textContent=m(c)
+    document.getElementById("parts-workshop-total").textContent=m(w)
+    const l=n(document.getElementById("labor_cost")?.value)
+    document.getElementById("grand-client-total").textContent=m(c+l)
+  }
+
+  document.addEventListener("input",e=>{
+    if(e.target.name?.endsWith("_cost")||e.target.id==="labor_cost")recalc()
+  })
+
+  function addPartRow(){
+    const tbody=document.getElementById("parts-tbody")
+    const tpl=document.getElementById("empty-form-template")
+    const total=document.querySelector('input[name="parts-TOTAL_FORMS"]') || document.querySelector('input[name$="-TOTAL_FORMS"]')
+    const idx=parseInt(total.value,10)
+
+    const row=tpl.content.cloneNode(true).querySelector("tr")
+    row.innerHTML=row.innerHTML.replaceAll("__prefix__",idx)
+    tbody.appendChild(row)
+    total.value=idx+1
+    recalc()
+  }
+
+  function removePartRow(btn){
+    const row=btn.closest("tr")
+    const del=row.querySelector('input[name$="-DELETE"]')
+    if(del){del.checked=true;row.classList.add("row-hidden")}else row.remove()
+    recalc()
+  }
+
+  document.addEventListener("DOMContentLoaded",recalc)
+</script>
+
+{% endblock %}

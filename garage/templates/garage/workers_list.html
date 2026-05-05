@@ -1,0 +1,87 @@
+{% extends "garage/base.html" %}
+{% block content %}
+
+<h2 class="mb-3">الفنيين</h2>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h3 class="h6 mb-3">إضافة فني جديد</h3>
+
+    {% if warning %}
+      <div class="alert alert-warning warn">{{ warning }}</div>
+    {% endif %}
+
+    <form method="post" class="form-modern">
+      {% csrf_token %}
+      {{ form.as_p }}
+
+      <!-- make it bootstrap primary (red) -->
+      <button type="submit" class="btn btn-primary">إضافة الفني</button>
+    </form>
+  </div>
+</div>
+
+{% if workers %}
+  {% for worker in workers %}
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <div>
+            <h3 class="h5 mb-1">{{ worker.name }}</h3>
+            {% if worker.phone %}<div class="muted">{{ worker.phone }}</div>{% endif %}
+          </div>
+
+          {% if worker.name == "غير محدد" %}
+            <div class="muted">فني افتراضي</div>
+          {% else %}
+            <form method="post" class="m-0">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete">
+              <input type="hidden" name="worker_id" value="{{ worker.id }}">
+              <button type="submit" class="btn btn-outline-danger btn-sm">حذف الفني</button>
+            </form>
+          {% endif %}
+        </div>
+
+        {% if worker.visits.all %}
+          <div class="table-responsive mt-3">
+            <table class="table table-sm table-striped table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>التاريخ</th>
+                  <th>السيارة</th>
+                  <th>العميل</th>
+                  <th>الإجراء</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {% for v in worker.visits.all %}
+                  <tr>
+                    <td>{{ v.visit_date }}</td>
+                    <td>
+                      <a href="{% url 'car_detail' v.car.vin %}"><b>{{ v.car.vin }}</b></a>
+                      <div class="muted">{{ v.car.plate_number }}</div>
+                    </td>
+                    <td>{{ v.car.client.name }}</td>
+                    <td>
+                      <a class="btn btn-sm btn-primary" href="{% url 'visit_detail' v.id %}">
+                        عرض تفاصيل الزيارة
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="muted mt-3">لا يوجد صيانات مرتبطة بهذا الفني.</p>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+{% else %}
+  <p class="muted">لا يوجد فنيين مسجلين حتى الآن.</p>
+{% endif %}
+
+{% endblock %}
